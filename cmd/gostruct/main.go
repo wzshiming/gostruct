@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -51,5 +50,5 @@ func main() {
 	}
 
 	code := gostruct.GenStruct(n, i)
-	fmt.Println(code)
+	os.Stdout.Write(code)
 }
