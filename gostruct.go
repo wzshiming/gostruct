@@ -12,14 +12,14 @@ import (
 	"github.com/wzshiming/namecase"
 )
 
-// GenStruct
+// GenStruct Generating structure code based on data
 func GenStruct(name string, i interface{}) []byte {
 	g := NewGenStruct(name)
 	g.Add(name, i)
 	return g.Generate()
 }
 
-// NewGenStruct
+// NewGenStruct Create a new structure generator
 func NewGenStruct(name string) *Gen {
 	return &Gen{
 		Name:  name,
@@ -27,6 +27,7 @@ func NewGenStruct(name string) *Gen {
 	}
 }
 
+// Gen structure generator
 type Gen struct {
 	Name  string
 	Types map[string][]byte
