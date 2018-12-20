@@ -12,24 +12,15 @@ import (
 	"github.com/wzshiming/namecase"
 )
 
-// GenStruct Generating structure code based on data
-func GenStruct(name string, i interface{}) []byte {
-	g := NewGenStruct(name)
-	g.Add(name, i)
-	return g.Generate()
-}
-
 // NewGenStruct Create a new structure generator
-func NewGenStruct(name string) *Gen {
+func NewGenStruct() *Gen {
 	return &Gen{
-		Name:  name,
 		Types: map[string][]byte{},
 	}
 }
 
 // Gen structure generator
 type Gen struct {
-	Name  string
 	Types map[string][]byte
 }
 
@@ -67,7 +58,7 @@ func (g *Gen) toStar(name string) string {
 	return name
 }
 
-func (g *Gen) defineStruct(name string, val reflect.Value) string {
+func (g *Gen) defineStruct(typname string, val reflect.Value) string {
 	switch kind := val.Kind(); kind {
 	case reflect.Float64:
 		// Can't distinguish between integer and floating.
@@ -84,24 +75,24 @@ func (g *Gen) defineStruct(name string, val reflect.Value) string {
 	case reflect.Slice:
 		if val.Len() == 0 {
 			// No data can be identified in a slice.
-			return fmt.Sprintf("[]%s", g.defineStruct(name, reflect.New(val.Type().Elem()).Elem()))
+			return fmt.Sprintf("[]%s", g.defineStruct(typname, reflect.New(val.Type().Elem()).Elem()))
 		}
-		return fmt.Sprintf("[]%s", g.defineStruct(name, val.Index(0)))
+		return fmt.Sprintf("[]%s", g.defineStruct(typname, val.Index(0)))
 	case reflect.Ptr, reflect.Interface:
-		return g.toStar(g.defineStruct(name, val.Elem()))
+		return g.toStar(g.defineStruct(typname, val.Elem()))
 	case reflect.Map:
 		mk := val.MapKeys()
 		if len(mk) == 0 {
 			return "json.RawMessage"
 		}
-		if _, ok := g.Types[name]; ok {
-			return name
+		if _, ok := g.Types[typname]; ok {
+			return typname
 		}
 		valueSlice(mk).Sort()
 		named := map[string]int{}
-		g.Types[name] = nil
+		g.Types[typname] = nil
 		buf := bytes.NewBuffer(nil)
-		buf.WriteString(fmt.Sprintf("\n// %s This structure is generated from data.\ntype %s ", name, name))
+		buf.WriteString(fmt.Sprintf("\n// %s This structure is generated from data.\ntype %s ", typname, typname))
 		buf.WriteString("struct {\n")
 		for _, k := range mk {
 			v := val.MapIndex(k)
@@ -111,13 +102,13 @@ func (g *Gen) defineStruct(name string, val reflect.Value) string {
 				newName = fmt.Sprintf("%s%d", newName, named[newName]+1)
 			}
 			named[newName]++
-			newTypeName := namecase.ToUpperHumpInitialisms(g.Name + " " + name)
+			newTypeName := namecase.ToUpperHumpInitialisms(typname + " " + name)
 			newTypeName = g.defineStruct(newTypeName, v)
 			buf.WriteString(fmt.Sprintf("%s %s `json:\"%s,omitempty\"`\n", newName, newTypeName, name))
 		}
 		buf.WriteString("}\n")
-		g.Types[name] = formatSrc(buf.Bytes())
-		return g.toStar(name)
+		g.Types[typname] = formatSrc(buf.Bytes())
+		return g.toStar(typname)
 
 	// From other definitions.
 	case
@@ -128,25 +119,25 @@ func (g *Gen) defineStruct(name string, val reflect.Value) string {
 		reflect.Uintptr, reflect.UnsafePointer:
 		return kind.String()
 	case reflect.Array:
-		return fmt.Sprintf("[%d]%s", val.Len(), g.defineStruct(name, val.Elem()))
+		return fmt.Sprintf("[%d]%s", val.Len(), g.defineStruct(typname, val.Elem()))
 	case reflect.Struct:
-		if _, ok := g.Types[name]; ok {
-			return name
+		if _, ok := g.Types[typname]; ok {
+			return typname
 		}
 		buf := bytes.NewBuffer(nil)
-		buf.WriteString(fmt.Sprintf("\n// %s This structure is generated from other definitions.\ntype %s ", name, name))
+		buf.WriteString(fmt.Sprintf("\n// %s This structure is generated from other definitions.\ntype %s ", typname, typname))
 		buf.WriteString("struct {\n")
 		typ := val.Type()
 		num := typ.NumField()
-		g.Types[name] = nil
+		g.Types[typname] = nil
 		for i := 0; i != num; i++ {
 			t := typ.Field(i)
 			v := val.Field(i)
 			buf.WriteString(fmt.Sprintf("%s %s %s\n", t.Name, g.defineStruct(t.Name, v), string(t.Tag)))
 		}
 		buf.WriteString("}\n")
-		g.Types[name] = formatSrc(buf.Bytes())
-		return g.toStar(name)
+		g.Types[typname] = formatSrc(buf.Bytes())
+		return g.toStar(typname)
 	default:
 		// No action.
 		return "json.RawMessage"

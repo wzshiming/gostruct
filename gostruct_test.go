@@ -18,7 +18,9 @@ func TestGenStruct(t *testing.T) {
 	for _, tt := range tests {
 		var val interface{}
 		json.Unmarshal([]byte(tt.args.i), &val)
-		got := string(GenStruct(tt.args.name, val))
+		gs := NewGenStruct()
+		gs.Add(tt.args.name, val)
+		got := string(gs.Generate())
 		t.Logf("// %v %v %v", tt.args.name, tt.args.i, got)
 	}
 }

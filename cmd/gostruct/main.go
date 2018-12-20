@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -14,6 +15,7 @@ import (
 
 var f = flag.String("f", "", "json file path")
 var name = flag.String("n", "Foo", "struct name")
+var out = flag.String("o", "", "output file")
 
 func main() {
 	flag.Parse()
@@ -49,6 +51,15 @@ func main() {
 		n = namecase.ToUpperHumpInitialisms(n)
 	}
 
-	code := gostruct.GenStruct(n, i)
-	os.Stdout.Write(code)
+	gs := gostruct.NewGenStruct()
+	gs.Add(n, i)
+	code := gs.Generate()
+	if *out == "" {
+		os.Stdout.Write(code)
+	} else {
+		err := ioutil.WriteFile(*out, code, 0666)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 }
