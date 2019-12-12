@@ -1,3 +1,5 @@
 module github.com/wzshiming/gostruct
 
-require github.com/wzshiming/namecase v3.0.3+incompatible
+go 1.13
+
+require github.com/wzshiming/namecase v0.0.0-20191212122028-041c69d82ef7
