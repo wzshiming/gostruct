@@ -4,7 +4,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/wzshiming/gostruct)](https://goreportcard.com/report/github.com/wzshiming/gostruct)
 [![GoDoc](https://godoc.org/github.com/wzshiming/gostruct?status.svg)](https://godoc.org/github.com/wzshiming/gostruct)
 [![GitHub license](https://img.shields.io/github/license/wzshiming/gostruct.svg)](https://github.com/wzshiming/gostruct/blob/master/LICENSE)
-[![cover.run](https://cover.run/go/github.com/wzshiming/gostruct.svg?style=flat&tag=golang-1.10)](https://cover.run/go?tag=golang-1.10&repo=github.com%2Fwzshiming%2Fgostruct)
+[![gocover.io](https://gocover.io/_badge/github.com/wzshiming/gostruct)](https://gocover.io/github.com/wzshiming/gostruct)
 
 ## License
 
